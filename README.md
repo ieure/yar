@@ -22,3 +22,36 @@ programmers. The original software is written for DOS and does not
 work on modern hardware.
 
 
+## Features
+
+ - Works on modern hardware
+ - Device family / pinout detection (with UniPak 2B)
+
+## Status
+
+Yar is rough around the edges, but can get from a host machine to the
+programmer, and vice-versa. Dumping and programming devices can be
+done from the programmer keypad.
+
+ - Upload data to programmer: **WORKING**
+ - Download data: **MOSTLY WORKING**. Dumps entire RAM contents, not
+   just device contents. Has a few bytes trailing at the end.
+ - Compute local checksums: **WORKING**
+ - Device autodetection: **WORKING** (but untested)
+ - Device lookup: **NOT IMPLEMENTED**
+ - Initiate device programming: **NOT WORKING**
+ - Load device to RAM, dump to file (in one step): **NOT WORKING**
+ - Load file to RAM, program device: **NOT WORKING**
+ - UniPak / UniPak 2 device lookup: **NOT WORKING** (I don’t have
+   device lists for these)
+
+## Hardware support
+
+It works with the Data I/O 29B. Any Data I/O device which implements
+the Computer Remote Control (CRC) protocol from the 29B manual should
+work, but I haven’t tested this. Theoreticaly, it will work with the
+29A.
+
+Device autodetection requires a UniPak 2B; all other Paks require you
+to specify the family and pinout, or device type. UniPak/UniPak 2
+support is spotty, since I don’t have device lists for them.
