@@ -5,6 +5,8 @@
 #
 
 from setuptools import setup, find_packages
+# Dumb bug https://groups.google.com/forum/#!msg/nose-users/fnJ-kAUbYHQ/ngz3qjdnrioJ
+import multiprocessing
 
 setup(name="yar",
       version="0.0.2",
