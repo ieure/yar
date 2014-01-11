@@ -7,7 +7,7 @@
 from setuptools import setup, find_packages
 
 setup(name="yar",
-      version="0.0.1",
+      version="0.0.2",
       packages=find_packages(),
       tests_require=['nose'],
       install_requires=["pyserial==2.7"],
