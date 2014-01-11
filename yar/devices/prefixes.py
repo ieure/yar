@@ -9,7 +9,7 @@
 from collections import defaultdict
 
 # Map of device manufacturer abbrev to parts prefix
-PREFIXES = {
+_PREFIXES = {
     'AMD': ('a', 'am', 'ampal', 'mach', 'pal', 'palce'),
     'ASA': (),                  # FIXME
     'ATM': ('at', 'atv'),
@@ -92,18 +92,36 @@ PREFIXES = {
     'XIL': ()                   # n/a
 }
 
-def invert(prefixes):
-    """Return an inverted index of prefixes."""
-    d = defaultdict(set)
-    for (m, pfxs) in PREFIXES.iteritems():
-        ms = set([m])
-        for pfx in pfxs:
-            d[pfx].update(ms)
+class Prefixes():
 
-    return d
+    prefs = None
+    inverted = None
 
-PREFIX_INV = invert(PREFIXES)
+    def __init__(self):
+        self.prefs = _PREFIXES
+        self.inverted = self.invert(_PREFIXES)
 
-PREFIX_RE = "(%s)" % "|".join(
-    reduce(lambda a, b: set(a).union(set(b)),
-           PREFIXES.values()))
+    def get_mfgrs(self, prefix):
+        """Return possible manufacturers for this prefix."""
+        return self.inverted.get(prefix) or set()
+
+    def get_prefixes(self, mfgr):
+        """Return possible prefixes for this manufacturer."""
+        return self.prefs.get(mfgr) or set()
+
+    def re(self, prefixes=None):
+        """Return a regex matching prefixes."""
+        prefixes = prefixes or reduce(lambda a, b: set(a).union(set(b)),
+                                      self.prefs.values())
+        return "(%s)" % "|".join(prefixes)
+
+    def invert(self, prefixes):
+        """Return an inverted index of prefixes."""
+        d = defaultdict(set)
+        for (m, pfxs) in prefixes.iteritems():
+            ms = set([m])
+            for pfx in pfxs:
+                d[pfx].update(ms)
+        return d
+
+prefixes = Prefixes()

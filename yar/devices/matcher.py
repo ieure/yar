@@ -7,10 +7,9 @@
 """Match device names"""
 
 import re
-from . prefixes import PREFIX_RE, PREFIXES, PREFIX_INV
+from . prefixes import prefixes
 
-
-INPUT_RE = re.compile("^" + PREFIX_RE + "?" + "([0-9a-z]+)$", re.I)
+INPUT_RE = re.compile("^" + prefixes.re() + "?" + "([0-9a-z]+)$", re.I)
 
 WHITESPACE_RE = re.compile("\s")
 
@@ -51,8 +50,8 @@ def matches(devices, device):
     return (c, [ent for ent in devices if ent[1].lower() == part])
 
 
-def narrow_by_manuf(manuf, candidates):
-    m = PREFIX_INV.get(manuf)
+def narrow_by_manuf(mpref, candidates):
+    m = prefixes.get_mfgrs(mpref)
     if not m:
         return candidates
 
@@ -60,6 +59,10 @@ def narrow_by_manuf(manuf, candidates):
 
 
 def match(devices, device):
+    """Match a device against a device list.
+
+       The
+    """
     ((mfgr, part), candidates) = matches(devices, device)
     # If everything comes back as the same pinout, use that.
     candidate_pinouts = set([ent[4:6] for ent in candidates])
