@@ -52,9 +52,13 @@ _PREFIXES = {
     # MOS Technology
     'MOS': (), # FIXME
     # Motorola
-    'MOT': ('hep', 'lf', 'mc', 'mcc', 'mccs', 'mcm', 'mct', 'mec', 'mm', 'mpf', 'mpq', 'mps', 'mpsa', 'mwm', 'sg', 'sn', 'tda', 'tl', 'ua', 'uc', 'uln', 'xc'),
+    'MOT': ('hep', 'lf', 'mc', 'mcc', 'mccs', 'mcm', 'mct', 'mec',
+            'mm', 'mpf', 'mpq', 'mps', 'mpsa', 'mwm', 'sg', 'sn',
+            'tda', 'tl', 'ua', 'uc', 'uln', 'xc'),
     # National Semiconductor
-    'NAT': ('a', 'adc', 'clc', 'cop', 'dac', 'dm', 'dp', 'ds', 'f', 'l', 'lf', 'lft', 'lh', 'lm', 'lmc', 'lmd', 'lmf', 'lmx', 'lpc', 'mf', 'mm', 'nh', 'unx'),
+    'NAT': ('a', 'adc', 'clc', 'cop', 'dac', 'dm', 'dp', 'ds', 'f',
+            'l', 'lf', 'lft', 'lh', 'lm', 'lmc', 'lmd', 'lmf', 'lmx',
+            'lpc', 'mf', 'mm', 'nh', 'unx'),
     'NEC': ('pb', 'pc', 'pd', 'upd', 'upd8'),
     'OKI': ('msc', 'msm'),
     'OWS': (), # FIXME
@@ -79,7 +83,9 @@ _PREFIXES = {
     # ???
     'SON': (),
     # Texas Instruments
-    'TEX': ('mc', 'ne', 'op', 'rc', 'sg', 'sn', 'tpbpal', 'til', 'tip', 'tipal', 'tis', 'tl', 'tlc', 'tle', 'tm', 'tms', 'ua', 'uln'),
+    'TEX': ('mc', 'ne', 'op', 'rc', 'sg', 'sn', 'tpbpal', 'til',
+            'tip', 'tipal', 'tis', 'tl', 'tlc', 'tle', 'tm', 'tms',
+            'ua', 'uln'),
     # Toshiba
     'TOS': ('t', 'ta', 'tc', 'td', 'thm', 'tmm', 'tmp', 'tmpz'),
     # VLSI
