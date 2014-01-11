@@ -6,12 +6,17 @@
 
 """Yar CLI."""
 
-import serial
 import sys
-from newcontrol import Yar
 import format
-import cksum
 from optparse import OptionParser, OptionGroup
+
+import serial
+
+from newcontrol import Yar
+from devices.matcher import match
+import devices.unipak2b as unipak2b
+import cksum
+
 
 def summarize(f):
     """Return the function's doc summary."""
@@ -22,6 +27,10 @@ def get_commands():
     return sorted(
         (name[:-4], summarize(f), f)
         for (name, f) in globals().iteritems() if name.endswith("_cmd"))
+
+
+def get_commands_map():
+    return dict((name, f) for (name, _, f) in get_commands())
 
 
 def get_parser():
@@ -50,6 +59,12 @@ def get_parser():
     p.add_option("--detect", help="Autodetect device (on some Paks)")
 
     return p
+
+
+def load_pak(name):
+    """Return Pak  data."""
+    if name == "uni2b":
+        return unipak2b
 
 
 def connect(yar):
@@ -125,10 +140,27 @@ def loadfile_cmd(yar, file_):
         yar.load_from(inp)
 
 
+def lookup_cmd(yar, device):
+    """Look up a device family/pinout"""
+    pak = load_pak("uni2b")
+    try:
+        (family, pinout) = match(pak.DEVICES, device)
+        print "%s family %03x pinout %03x" % (device, family, pinout)
+        return 0
+    except ValueError, e:
+        print e
+        return 1
+
+
 def main():
     """Yar main entry point"""
     p = get_parser()
     (opts, cmd_args) = p.parse_args()
     (cmd, args) = (cmd_args[0], cmd_args[1:])
     c = Yar(opts.port)           # FIXME, use all settings
-    sys.exit(CMDS[cmd](c, *args))
+    cmds = get_commands_map()
+    if cmd not in cmds:
+        print "No such command: `%s'" % cmd
+        p.print_help()
+        sys.exit(-1)
+    sys.exit(cmds[cmd](c, *args))
