@@ -77,6 +77,15 @@ def configure(yar, opts):
                        int(opts.pinout, 16))
 
 
+def await_operator(yar, msg):
+    sys.stdout.write(msg or "Press START...")
+    r = yar.await_start()
+    if not r:
+        raise Exception("Timed out")
+    print "ok."
+    return r
+
+
 def checksum_cmd(yar, *args):
     """Checksum files"""
     for file_ in args:
@@ -103,6 +112,7 @@ def dumpram_cmd(yar, output):
 def loaddev_cmd(yar):
     """Load device contents into programmer RAM"""
     yar.clear_ram()
+    await_operator("Insert device into indicated socket, then press START...")
     yar.load()
     return 0
 

@@ -151,6 +151,11 @@ class Yar():
         self._writeline("%02xH", size)
         return self._readok()
 
+    def await_start(self):
+        """Wait for the operator to press START on the programmer."""
+        self._writeline('%')
+        return self._await(6000)
+
     def set_format(self, format, control_code=0):
         """Set the format used to send and receive data."""
         self._writeline("%x%02xA" % (control_code, format))
