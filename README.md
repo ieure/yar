@@ -55,3 +55,36 @@ work, but I haven’t tested this. Theoreticaly, it will work with the
 Device autodetection requires a UniPak 2B; all other Paks require you
 to specify the family and pinout, or device type. UniPak/UniPak 2
 support is spotty, since I don’t have device lists for them.
+
+## OS support
+
+Yar is written in Python, and should be fairly portable. It uses
+[PySerial](http://pyserial.sourceforge.net/index.html) to communicate
+with the programmer, so if PySerial supports your OS, Yar should,
+too. That being said, I have not tested it on any platform other than
+Mac OS X.
+
+## Installation
+
+Not recommended at this time, but on UNIX-like systems:
+
+```
+$ git clone git@github.com:ieure/yar.git
+$ cd yar
+$ python setup.py bdist_egg
+$ sudo easy_install dist/yar*.egg
+```
+
+(This will get easier as YAR matures)
+
+## Hacking
+
+If you want to hack on yar, you should set up a Python virtual environment:
+
+```
+$ git clone git@github.com:ieure/yar.git
+$ cd yar
+$ virtualenv --no-site-packages .
+$ . bin/activate
+$ python setup.py develop
+```
