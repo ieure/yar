@@ -210,7 +210,7 @@ class Yar():
 
     def dump_to(self, outp):
         """Dump programmer RAM to file-like object."""
-        yar.set_format(format.BINARY)
+        self.set_format(format.BINARY)
         self._writeline("O")
         done = False
         tries = 1
