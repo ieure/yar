@@ -7,6 +7,7 @@
 """Yar CLI."""
 
 import sys
+import re
 import format
 from optparse import OptionParser, OptionGroup
 
@@ -14,8 +15,8 @@ import serial
 
 from control import Yar
 from devices.matcher import match
-import devices.unipak2b as unipak2b
-import cksum
+import yar.pak as pak
+import yar.cksum as cksum
 
 
 def summarize(f):
@@ -31,6 +32,15 @@ def get_commands():
 
 def get_commands_map():
     return dict((name, f) for (name, _, f) in get_commands())
+
+
+def expand_command(cmd, cmds):
+    """Match a command, returning the name of the full, unambiguous cmd."""
+    cmd_re = re.compile("^" + ".*".join(cmd) + ".*", re.I)
+    cs = [name for name in cmds if cmd_re.match(name)]
+    if len(cs) == 1:
+        return cs[0]
+    return None
 
 
 def get_parser():
@@ -50,50 +60,23 @@ def get_parser():
     cg.add_option("--parity", default="N81", help="Connection parity/data/stop. Default: N81")
     p.add_option_group(cg)
 
-    p.add_option("--pak", help="Pak instaled in the programmer: uni, uni2, uni2b, logic, gang")
+    dg = OptionGroup(p, "Device options")
+    dg.add_option("--pak", help="Pak instaled in the programmer: unipak, unipak2, unipak2b, logicpak, gangpak")
 
-    p.add_option("--device", help="Device ID; looks up family/pinout")
+    dg.add_option("--device", help="Device ID; looks up family/pinout")
 
-    p.add_option("--family", help="Device family")
-    p.add_option("--pinout", help="Device pinout")
-    p.add_option("--detect", help="Autodetect device (on some Paks)")
+    dg.add_option("--family", help="Device family")
+    dg.add_option("--pinout", help="Device pinout")
+    dg.add_option("--detect", help="Autodetect device (on some Paks)",
+                  action="store_true")
+    p.add_option_group(dg)
 
     return p
 
 
-def load_pak(name):
-    """Return Pak  data."""
-    if name == "uni2b":
-        return unipak2b
-
-
-def connect(yar):
-    """Ensure that the programmer is connected."""
-    yar.flush()
-    c = yar.ping()
-    if c:
-        return
-
-    sys.stdout.write("Put device in remote mode: SELECT F1 START START")
-    while not yar.ping():
-        pass
-    print " connected."
-
-
-def configure(yar, opts):
-    """Configure the programmer for the given options"""
-    connect()
-    if opts.detect:
-        yar.select(0xBD)
-        yar.set_device(0xFF, 0xFF)
-
-    if opts.family and opts.pinout:
-        yar.set_device(int(opts.family, 16),
-                       int(opts.pinout, 16))
-
-
 def await_operator(yar, msg):
     sys.stdout.write(msg or "Press START...")
+    sys.stdout.flush()
     r = yar.await_start()
     if not r:
         raise Exception("Timed out")
@@ -101,7 +84,10 @@ def await_operator(yar, msg):
     return r
 
 
-def checksum_cmd(yar, *args):
+ # Commands
+
+
+def checksum_cmd(_, *args):
     """Checksum files"""
     for file_ in args:
         with open(file_, 'rb') as fp:
@@ -110,9 +96,10 @@ def checksum_cmd(yar, *args):
     return 0
 
 
-def dumpram_cmd(yar, output):
+def dumpram_cmd(s, output):
     """Dump programmer RAM to file."""
-    yar.flush()
+    yar = s.yar()
+    s.yar().flush()
     if not yar.ping():
         print yar.last_error()
         return 1
@@ -124,11 +111,14 @@ def dumpram_cmd(yar, output):
     return 0
 
 
-def loaddev_cmd(yar):
+def loaddev_cmd(s):
     """Load device contents into programmer RAM"""
+    yar = s.yar()
     yar.clear_ram()
-    await_operator("Insert device into indicated socket, then press START...")
-    yar.load()
+    await_operator(
+        yar, "Insert device into indicated socket, then press START...")
+    sum = yar.load()
+    print "Checksum: %06x" % sum
     return 0
 
 
@@ -140,11 +130,10 @@ def loadfile_cmd(yar, file_):
         yar.load_from(inp)
 
 
-def lookup_cmd(yar, device):
+def lookup_cmd(s, device):
     """Look up a device family/pinout"""
-    pak = load_pak("uni2b")
     try:
-        (family, pinout) = match(pak.DEVICES, device)
+        (family, pinout) = match(s.pak().DEVICES, device)
         print "%s family %03x pinout %03x" % (device, family, pinout)
         return 0
     except ValueError, e:
@@ -152,15 +141,79 @@ def lookup_cmd(yar, device):
         return 1
 
 
+ # Main code
+
+class GlobalState():
+
+    _yar = None
+    opts = None
+    args = None
+
+    def __init__(self, opts, args):
+        self.opts = opts
+        self.args = args
+
+    def yar(self):
+        """Return a configured Yar instance."""
+        if not self._yar:
+            self._yar = self._construct()
+            self._connect(self._yar)
+            self._configure(self._yar)
+        return self._yar
+
+    def pak(self):
+        """Return the configured Pak."""
+        return pak.load(self.opts.pak)
+
+    def _construct(self):
+        return Yar(self.opts.port)           # FIXME, use all settings
+
+    def _connect(self, yar):
+        """Ensure that the programmer is connected."""
+        yar.flush()
+        c = yar.ping()
+        if c:
+            return
+
+            sys.stdout.write("Put device in remote mode: SELECT F1 START START")
+            while not yar.ping():
+                pass
+                print " connected."
+
+    def _configure(self, yar):
+        """Configure the programmer for the given options"""
+        if self.opts.detect:
+            yar.select(0xBD)
+            yar.set_device(0xFF, 0xFF)
+
+        if self.opts.device:
+            (family, pinout) = match(self.pak().DEVICES, self.opts.device)
+            yar.set_device(family, pinout)
+
+        if self.opts.family and self.opts.pinout:
+                yar.set_device(int(self.opts.family, 16),
+                               int(self.opts.pinout, 16))
+
 def main():
     """Yar main entry point"""
     p = get_parser()
     (opts, cmd_args) = p.parse_args()
+    if not cmd_args:
+        p.print_help()
+        sys.exit(-1)
     (cmd, args) = (cmd_args[0], cmd_args[1:])
-    c = Yar(opts.port)           # FIXME, use all settings
     cmds = get_commands_map()
+    cmd_ = expand_command(cmd, cmds.keys())
+    cmd = cmd_ or cmd
     if cmd not in cmds:
         print "No such command: `%s'" % cmd
         p.print_help()
         sys.exit(-1)
-    sys.exit(cmds[cmd](c, *args))
+
+    s = GlobalState(opts, args)
+
+    # try:
+    sys.exit(cmds[cmd](s, *args))
+    # except Exception, e:
+    #     print "%s" % e
+    #     sys.exit(-2)
