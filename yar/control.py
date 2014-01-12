@@ -153,7 +153,7 @@ class Yar():
 
     def await_start(self):
         """Wait for the operator to press START on the programmer."""
-        self._writeline('%')
+        self._writeline('%%')
         return self._await(6000)
 
     def set_format(self, format, control_code=0):
