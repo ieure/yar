@@ -12,7 +12,7 @@ from optparse import OptionParser, OptionGroup
 
 import serial
 
-from newcontrol import Yar
+from control import Yar
 from devices.matcher import match
 import devices.unipak2b as unipak2b
 import cksum
