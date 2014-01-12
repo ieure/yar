@@ -109,7 +109,7 @@ class Yar():
         """Return the last error, or None"""
         self._writeline("F")
         resp = self._readok()
-        return resp and decode_errors(int(resp, 16)) or None
+        return resp and errorp(int(resp, 16)) or None
 
     def ping(self):
         """Ping the programmer. Returns True if it is responding."""
@@ -154,7 +154,10 @@ class Yar():
     def await_start(self):
         """Wait for the operator to press START on the programmer."""
         self._writeline('%%')
-        return self._await(6000)
+        r = self._await(6000)
+        if not r:
+            return r
+        return self._readok()
 
     def set_format(self, format, control_code=0):
         """Set the format used to send and receive data."""
@@ -163,7 +166,7 @@ class Yar():
 
     def set_device(self, family, pinout):
         """Set the device type to use."""
-        self._writeline("%x%x@", family, pinout)
+        self._writeline("%x%x@", family & 0xFF, pinout & 0xFF)
         self._resp()
 
     def get_device(self):
