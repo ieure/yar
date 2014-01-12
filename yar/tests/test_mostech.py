@@ -21,7 +21,6 @@ class MOSCodecTest(unittest.TestCase):
         e.encode(self.bytes[0:16])
         e.encode(self.bytes[16:32])
         encd = e.finalize()
-        print encd
 
         d = MOSDecoder()
         for line in encd.split("\n"):
