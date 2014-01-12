@@ -6,10 +6,12 @@
 
 """Yar CLI."""
 
-import sys
-import re
-import format
+from itertools import chain
 from optparse import OptionParser, OptionGroup
+from os.path import basename
+import format
+import re
+import sys
 
 import serial
 
@@ -17,6 +19,7 @@ from control import Yar
 from devices.matcher import match
 import yar.pak as pak
 import yar.cksum as cksum
+import yar.io as io
 
 
 def summarize(f):
@@ -89,10 +92,9 @@ def await_operator(yar, msg):
 
 def checksum_cmd(_, *args):
     """Checksum files"""
-    for file_ in args:
-        with open(file_, 'rb') as fp:
-            print "%s - %06x" % (
-                file_, cksum.checksum(cksum.file_to_bytes(fp)))
+    for (inpf, fd) in chain.from_iterable(io.gen_fds(args)):
+        print "%s %06x" % (
+            basename(inpf), cksum.checksum(io.file_to_bytes(fd)))
     return 0
 
 
