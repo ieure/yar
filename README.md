@@ -26,6 +26,8 @@ work on modern hardware.
 
  - Works on modern hardware
  - Device family / pinout detection (with UniPak 2B)
+ - Device lookup on GangPak, LogicPak, and UniPak 2B.
+ - Can calculate checksums locally, including in ZIP archives.
 
 ## Status
 
@@ -39,6 +41,7 @@ done from the programmer keypad.
  - Compute local checksums: **WORKING**
  - Device autodetection: **WORKING** (but untested)
  - Device lookup: **WORKING**.
+ - Checksum files in ZIP archives: **WORKING**
  - Initiate device programming: **NOT WORKING**
  - Load device to RAM, dump to file (in one step): **NOT WORKING**
  - Load file to RAM, program device: **NOT WORKING**
