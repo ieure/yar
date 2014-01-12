@@ -38,9 +38,7 @@ done from the programmer keypad.
    just device contents. Has a few bytes trailing at the end.
  - Compute local checksums: **WORKING**
  - Device autodetection: **WORKING** (but untested)
- - Device lookup: **PARTLY WORKING**. Device list for UniPak 2B
-   implemented, not hooked up to programming command, some stuff faked
-   out.
+ - Device lookup: **WORKING**.
  - Initiate device programming: **NOT WORKING**
  - Load device to RAM, dump to file (in one step): **NOT WORKING**
  - Load file to RAM, program device: **NOT WORKING**
