@@ -22,7 +22,21 @@ class DeviceMatcherTest(unittest.TestCase):
                          m.extract("  am 2732 dc  ").groups())
 
     def test_matches(self):
-        print m.matches(self.devs, "am2732dc")
+        self.assertEqual(m.matches(self.devs, "am2732dc"),
+                         (('am', '2732dc'), []))
+
+        self.assertEqual(
+            m.matches(self.devs, "am2732"),
+            (('am', '2732'), [('AMD', '2732', 'EPROM', 'DIP', 25, 36),
+                          ('FUJ', '2732', 'EPROM', 'DIP', 25, 36),
+                          ('INT', '2732', 'EPROM', 'DIP', 25, 36),
+                          ('MIK', '2732', 'EPROM', 'DIP', 25, 36),
+                          ('MIT', '2732', 'EPROM', 'DIP', 25, 36),
+                          ('NAT', '2732', 'EPROM', 'DIP', 25, 36),
+                          ('NEC', '2732', 'EPROM', 'DIP', 25, 36),
+                          ('SGS', '2732', 'EPROM', 'DIP', 25, 36),
+                          ('TEX', '2732', 'EPROM', 'DIP', 189, 36),
+                          ('TOS', '2732', 'EPROM', 'DIP', 25, 36)]))
 
     def test_match(self):
         self.assertRaises(ValueError, m.match, self.devs, "am2732dc")
@@ -31,4 +45,4 @@ class DeviceMatcherTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main
+    unittest.main()
