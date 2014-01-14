@@ -9,6 +9,7 @@
 from array import array
 from contextlib import closing
 import zipfile
+import time
 
 def file_to_bytes(inp, bs=4096):
     """Return an array of bytes read from inp."""
@@ -43,3 +44,44 @@ def gen_zip_fds(inpf, fd):
         for zfn in zfd.namelist():
             with closing(zfd.open(zfn)) as fd:
                 yield ("%s:%s" % (inpf, zfn), fd)
+
+
+class Progress():
+
+    """An object representing progress."""
+
+    _start = 0                  # Time the process started
+    _finish = None              # Time the process finished
+    _bytes = 0                  # Bytes to process
+    _done = 0                   # Bytes processed
+
+    def __init__(self, bytes):
+        self._bytes = bytes
+
+    def start(self):
+        """Start processing"""
+        self._start = time.time()
+
+    def complete(self):
+        self._finish = time.time()
+
+    def update(self, processed):
+        """Update the number of bytes processed."""
+        if self._start == 0:
+            self._start = time.time()
+        self._done = processed
+
+    def bytes_sec(self):
+        return self._done / (time.time() - self._start)
+
+    def percent_done(self):
+        return int((float(self._done) / self._bytes) * 100)
+
+    def eta(self):
+        msecs_rem = (self._bytes - self._done) / self.bytes_sec()
+        return (msecs_rem / 60, msecs_rem % 60)
+
+    def __repr__(self):
+        args = (self._done, self._bytes, self.percent_done(),
+                self.bytes_sec()) + self.eta()
+        return "[%d/%d] bytes, %02d%% @%db/s, eta %dm%02ds" % args
