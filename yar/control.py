@@ -6,8 +6,8 @@
 
 """Data I/O serial interface."""
 
-import serial
 import array
+import serial
 import sys
 import time
 from . import format
@@ -15,6 +15,8 @@ from yar.cksum import *
 import yar.io as io
 
 EOL = "\r"
+
+ # Error handling
 
 ERRS = ((2**31, "Error:"),
         (2**26, "Serial overrun error"),
@@ -41,6 +43,15 @@ ERRS = ((2**31, "Error:"),
         (2**2, "No RAM or insufficient RAM"),
         (2**1, "RAM write error, or program memory failure"),
         (2**0, "RAM end not on 1K boundary"))
+
+
+class ProgrammerError(IOError):
+
+    def __init__(self, code):
+        IOError.__init__(self, decode_errors(code))
+
+    def __unicode__(self):
+        return self.message
 
 
 def decode_errors(err):
@@ -118,11 +129,18 @@ class Yar():
         self._writeline("H")
         return self._readok()
 
+    def abort(self):
+        self.port.write([0x27])
+        self.flush()
+
     def _resp(self):
         """Return the response, or raise an exception."""
         r = self._readok()
         if not r:
-            raise Exception(self.last_error())
+            err = self.last_error()
+            if not err:
+                raise IOError("Failed to get error status!")
+            raise ProgrammerError(err)
         return r
 
     def config(self):
@@ -227,7 +245,6 @@ class Yar():
 
         if header[:10].tolist() != [0x0D, 0x08, 0x1C, 0x3E, 0x6B, 0x08,
                                     0x00, 0x00, 0x00, 0x00]:
-            self.abort()
             msg = "Invalid header " + " ".join([r"%02x"] * len(header))
             raise IOError(msg % tuple(header.tolist()))
 
@@ -252,7 +269,6 @@ class Yar():
         prog_sum = (trailer[2] << 8) + trailer[3]
         pload_sum = checksum(data_buf) & 0xFFFF
         if prog_sum != pload_sum:
-            self.abort()
             raise IOError("Programmer cksum %04x != data cksum %04x" % (
                 prog_sum, pload_sum))
         data_buf.tofile(outp)
