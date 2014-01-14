@@ -8,9 +8,11 @@
 
 import serial
 import array
+import sys
 import time
 from . import format
 from yar.cksum import *
+import yar.io as io
 
 EOL = "\r"
 
@@ -211,24 +213,49 @@ class Yar():
         self._await(max=300)
         return self._readok()
 
-    def dump_to(self, outp):
+    def dump_to(self, outp, progress_to=None):
         """Dump programmer RAM to file-like object."""
+        out = progress_to or sys.stderr
         self.set_format(format.BINARY)
         self._writeline("O")
-        done = False
-        tries = 1
-        while not done:
-            if tries > 15:
-                return True
+        data_buf = array.array("B")
+        header = array.array("B")
 
-            if self.port.inWaiting() == 0:
-                # Wait for data
-                tries += 1
-                time.sleep(tries*.2)
-                continue
+        # Read 16-byte header
+        while len(header) < 16:
+            header.fromstring(self.port.read(1))
 
-            outp.write(self.port.read(self.port.inWaiting()))
-            tries = 1
+        if header[:10].tolist() != [0x0D, 0x08, 0x1C, 0x3E, 0x6B, 0x08,
+                                    0x00, 0x00, 0x00, 0x00]:
+            self.abort()
+            msg = "Invalid header " + " ".join([r"%02x"] * len(header))
+            raise IOError(msg % tuple(header.tolist()))
+
+        sz = int("".join(map(str, header[0x0A:0x0F])), 16)
+        p = io.Progress(sz)
+        while len(data_buf) < sz:
+            # Don't overflow the buffer
+            tr = self.port.read(min(sz - len(data_buf), 128))
+            if tr != '':
+                data_buf.fromstring(tr)
+                p.update(len(data_buf))
+                out.write(repr(p) + "\r")
+                out.flush()
+            else:
+                time.sleep(.1)
+
+        # Two nulls + checksum
+        trailer = array.array("B")
+        while len(trailer) < 4:
+            trailer.fromstring(self.port.read(1))
+
+        prog_sum = (trailer[2] << 8) + trailer[3]
+        pload_sum = checksum(data_buf) & 0xFFFF
+        if prog_sum != pload_sum:
+            self.abort()
+            raise IOError("Programmer cksum %04x != data cksum %04x" % (
+                prog_sum, pload_sum))
+        data_buf.tofile(outp)
 
     def load_from(self, inp):
         """Load programmer RAM from file-like object."""
