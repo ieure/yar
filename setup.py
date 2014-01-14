@@ -9,7 +9,7 @@ from setuptools import setup, find_packages
 import multiprocessing
 
 setup(name="yar",
-      version="0.0.3",
+      version="0.0.4",
       packages=find_packages(),
       tests_require=['nose'],
       install_requires=["pyserial==2.7"],
