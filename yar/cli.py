@@ -106,7 +106,6 @@ def dumpram_cmd(s, output):
         print yar.last_error()
         return 1
 
-    print "Dumping"
     with open(output, 'wb') as fp:
         yar.dump_to(fp)
 
