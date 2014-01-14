@@ -16,7 +16,7 @@ import sys
 import serial
 
 from control import Yar
-from devices.matcher import match
+import yar.devices.matcher as matcher
 import yar.pak as pak
 import yar.cksum as cksum
 import yar.io as io
@@ -111,6 +111,25 @@ def dumpram_cmd(s, output):
 
     return 0
 
+def dumpdev_cmd(s, output):
+    """Dump device to file."""
+    yar = s.yar()
+    s.yar().flush()
+    if not yar.ping():
+        print yar.last_error()
+        return 1
+
+    # Load
+    print "Clearing RAM"
+    yar.clear_ram()
+    await_operator(
+        yar, "Insert device into indicated socket, then press START...")
+    yar.load()
+    with open(output, 'wb') as fp:
+        yar.dump_to(fp)
+
+    return 0
+
 
 def loaddev_cmd(s):
     """Load device contents into programmer RAM"""
@@ -118,8 +137,9 @@ def loaddev_cmd(s):
     yar.clear_ram()
     await_operator(
         yar, "Insert device into indicated socket, then press START...")
-    sum = yar.load()
-    print "Checksum: %06x" % sum
+    yar.load()
+    sum = yar.checksum()
+    print "Checksum: %04x" % sum
     return 0
 
 
@@ -133,13 +153,10 @@ def loadfile_cmd(yar, file_):
 
 def lookup_cmd(s, device):
     """Look up a device family/pinout"""
-    try:
-        (family, pinout) = match(s.pak().DEVICES, device)
-        print "%s family %03x pinout %03x" % (device, family, pinout)
-        return 0
-    except ValueError, e:
-        print e
-        return 1
+    (family, pinout) = matcher.match(s.pak().DEVICES, device)
+    print "%s family %03x pinout %03x" % (device, family, pinout)
+    return 0
+
 
 
  # Main code
@@ -176,10 +193,15 @@ class GlobalState():
         if c:
             return
 
-            sys.stdout.write("Put device in remote mode: SELECT F1 START START")
-            while not yar.ping():
-                pass
-                print " connected."
+        sys.stdout.write("Put device in remote mode: SELECT F1 START START...")
+        sys.stdout.flush()
+        while not yar.ping():
+            pass
+        print "connected."
+
+    def connected(self):
+        """Are we connected to the programmer?"""
+        return self._yar != None
 
     def _configure(self, yar):
         """Configure the programmer for the given options"""
@@ -188,7 +210,7 @@ class GlobalState():
             yar.set_device(0xFF, 0xFF)
 
         if self.opts.device:
-            (family, pinout) = match(self.pak().DEVICES, self.opts.device)
+            (family, pinout) = matcher.match(self.pak().DEVICES, self.opts.device)
             yar.set_device(family, pinout)
 
         if self.opts.family and self.opts.pinout:
