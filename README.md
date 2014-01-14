@@ -36,14 +36,14 @@ programmer, and vice-versa. Dumping and programming devices can be
 done from the programmer keypad.
 
  - Upload data to programmer: **WORKING**
- - Download data: **MOSTLY WORKING**. Dumps entire RAM contents, not
-   just device contents. Has a few bytes trailing at the end.
+ - Download data: **99% WORKING**. Dumps entire RAM contents, not
+   just device contents, so it’s too slow.
  - Compute local checksums: **WORKING**
  - Device autodetection: **WORKING** (but untested)
  - Device lookup: **WORKING**.
  - Checksum files in ZIP archives: **WORKING**
+ - Load device to RAM, dump to file (in one step): **WORKING**
  - Initiate device programming: **NOT WORKING**
- - Load device to RAM, dump to file (in one step): **NOT WORKING**
  - Load file to RAM, program device: **NOT WORKING**
  - UniPak / UniPak 2 device lookup: **NOT WORKING** (I don’t have
    device lists for these)
@@ -80,6 +80,12 @@ $ sudo easy_install dist/yar*.egg
 
 (This will get easier as YAR matures)
 
+## Examples
+
+### Checksum ROMs
+
+
+
 ## Hacking
 
 If you want to hack on yar, you should set up a Python virtual environment:
@@ -91,3 +97,4 @@ $ virtualenv --no-site-packages .
 $ . bin/activate
 $ python setup.py develop
 ```
+
