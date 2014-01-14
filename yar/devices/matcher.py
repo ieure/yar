@@ -13,12 +13,32 @@ INPUT_RE = re.compile("^" + prefixes.re() + "?" + "([0-9a-z]+)$", re.I)
 
 WHITESPACE_RE = re.compile("\s")
 
+class AmbiguousDeviceError(ValueError):
+
+    devices = []
+
+    def __init__(self, input, devs):
+        self.devices = devs
+        ValueError.__init__(
+            self, "Ambiguous device `%s', matches: %s" % (
+                input, ", ".join(devs)))
+
+
+class NoMatchingDeviceError(ValueError):
+
+    device = None
+
+    def __init__(self, input):
+        self.device = input
+        ValueError.__init__(self, "No matching device for `%s'" % input)
+
+
 def extract(input):
     """Return the manufacturer, part, and packaging from a device ID."""
     return INPUT_RE.match(re.sub(r'\s+', '', input))
 
 
-def distance(a, b):
+def distance(s1, s2):
     """Return the Levenshtein distance between strings a and b."""
     if len(s1) < len(s2):
         return distance(s2, s1)
@@ -78,9 +98,35 @@ def match(devices, device):
 
     # Nothing matched
     if not candidates:
-        raise ValueError("No matching device for `%s'" % device)
+        raise NoMatchingDeviceError(device)
+        raise ValueError()
 
     # Ambiguous match
     possible = ["%s %s" % ent[0:2] for ent in candidates]
-    raise ValueError("Ambiguous device `%s', matches: %s" % (
-        device, ", ".join(possible)))
+    raise AmbiguousDeviceError(device, possible)
+
+
+def similarity(prefix, part, device):
+    (mfgr, dpart, _, _, _, _) = device
+    # Who manufactured parts with this prefix?
+    mfgrs = prefixes.get_mfgrs(prefix)
+
+    # 50% - this manufacturer could have made the part
+    w = 0 if mfgr in mfgrs else 50
+    d = distance(part, dpart)
+    # print "`%s'->`%s' distance=%d" % (part, dpart, d)
+    return 100 - w - d * 10
+
+
+def similar(devices, device):
+    cpts = extract(device.lower())
+    if not cpts:
+        raise ValueError("Unknown part format")
+    c = cpts.groups()
+    (pref, part) = c
+
+    # Manuf?
+    mfgrs = prefixes.get_mfgrs(pref)
+
+    return sorted(devices, reverse=True,
+                  key=lambda d: similarity(pref, part, d))[:10]
