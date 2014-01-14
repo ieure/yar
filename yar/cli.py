@@ -213,8 +213,23 @@ def main():
 
     s = GlobalState(opts, args)
 
-    # try:
-    sys.exit(cmds[cmd](s, *args))
-    # except Exception, e:
-    #     print "%s" % e
-    #     sys.exit(-2)
+
+    try:
+        sys.exit(cmds[cmd](s, *args))
+    except matcher.AmbiguousDeviceError, e:
+        print e
+        return 1
+    except matcher.NoMatchingDeviceError, e:
+        cs = matcher.similar(s.pak().DEVICES, e.device)
+        if cs:
+            print "No device `%s' found. Similar devices:" % e.device
+            for (mfgr, part, _, _, _, _) in cs:
+                print "%s %s" % (mfgr, part)
+            return 2
+        else:
+            print "No device `%s' found, and nothing similar" % device
+            return 3
+    finally:
+        # Make sure we don't leave crap in the recv buffer
+        if s.connected():
+            s.yar().abort()
