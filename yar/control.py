@@ -273,9 +273,11 @@ class Yar():
                 prog_sum, pload_sum))
         data_buf.tofile(outp)
 
-    def load_from(self, inp):
+    def load_from(self, inp, progress_to=None):
         """Load programmer RAM from file-like object."""
-        bytes = file_to_bytes(inp)
+        out = progress_to or sys.stderr
+        bytes = io.file_to_bytes(inp)
+        p = io.Progress(len(bytes))
         sum = checksum(bytes) & 0xFFFF
         self.set_format(format.BINARY)
         self._writeline("I")
@@ -294,7 +296,22 @@ class Yar():
         self.port.write([127])  # Rubout
 
         # Data
-        self.port.write(bytes)
+        sent = 0
+        while len(bytes) > 0:
+            block = min(128, len(bytes))
+            assert block > 0, "Can't send empty block"
+            loop_bytes = bytes[:block]
+            written = self.port.write(loop_bytes)
+            assert written == block, "Incomplete write"
+            assert self.port.inWaiting() == 0, \
+                "Programmer is trying to tell us something"
+            self.port.flush()
+            sent += written
+            p.update(sent)
+            out.write(repr(p) + "\r")
+            out.flush()
+            bytes = bytes[block:]  # Truncate buffer
+            time.sleep(.1)
 
         # Trailer
         self.port.write([0x00, 0x00])
