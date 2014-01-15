@@ -211,7 +211,7 @@ class Yar():
     def flush(self):
         """Flush any data waiting in the read buffer."""
         if self.port.inWaiting() > 0:
-            self.port.read(self.port.inWaiting())
+            self.port.flushInput()
 
     def clear_ram(self):
         """Zero out device memory."""
