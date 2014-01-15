@@ -143,9 +143,9 @@ def loaddev_cmd(s):
     return 0
 
 
-def loadfile_cmd(yar, file_):
+def loadfile_cmd(s, file_):
     """Load file contents into programmer RAM"""
-    connect(yar)
+    yar = s.yar()
     yar.clear_ram()
     with open(file_, "rb") as inp:
         yar.load_from(inp)
@@ -156,7 +156,6 @@ def lookup_cmd(s, device):
     (family, pinout) = matcher.match(s.pak().DEVICES, device)
     print "%s family %03x pinout %03x" % (device, family, pinout)
     return 0
-
 
 
  # Main code
