@@ -74,6 +74,9 @@ Mac OS X.
 
 ## Installation
 
+Currently, you need to build the Python egg from source to install
+Yar:
+
 ```
 $ git clone git@github.com:ieure/yar.git
 $ cd yar
