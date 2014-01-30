@@ -260,5 +260,5 @@ def main():
         # Make sure we don't leave crap in the recv buffer
         if s.connected():
             yar = s.yar()
-            yar.abort()
+            yar.port.flush()
             yar.port.close()
