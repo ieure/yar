@@ -234,9 +234,8 @@ def main():
 
     s = GlobalState(opts, args)
 
-
     try:
-        sys.exit(cmds[cmd](s, *args))
+        return cmds[cmd](s, *args)
     except matcher.AmbiguousDeviceError, e:
         print e
         return 1
@@ -253,4 +252,6 @@ def main():
     finally:
         # Make sure we don't leave crap in the recv buffer
         if s.connected():
-            s.yar().abort()
+            yar = s.yar()
+            yar.abort()
+            yar.port.close()
