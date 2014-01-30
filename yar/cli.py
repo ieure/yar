@@ -146,7 +146,7 @@ def read_cmd(s):
         yar, "Insert device into indicated socket, then press START...")
     yar.load()
     sum = yar.checksum()
-    print "Checksum: %04x" % sum
+    print "Checksum: %04X" % sum
     return 0
 
 
