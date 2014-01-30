@@ -128,6 +128,8 @@ class Yar():
         while self.port.inWaiting() == 0 and tries < max:
             time.sleep(1)
             tries += 1
+        if tries == max:
+            raise IOError("Timed out after %ds" % max)
         return tries != max
 
     def last_error(self):
