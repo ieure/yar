@@ -207,7 +207,7 @@ class Yar():
         """Return the checksum of programmer RAM"""
         self._writeline("S")
         self._await()
-        r = self._readok()
+        r = self._resp()
         return r and int(r, 16) or r
 
     def flush(self):
