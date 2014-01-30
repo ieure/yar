@@ -229,7 +229,7 @@ def main():
     (opts, cmd_args) = p.parse_args()
     if not cmd_args:
         p.print_help()
-        sys.exit(-1)
+        return -1
     (cmd, args) = (cmd_args[0], cmd_args[1:])
     cmds = get_commands_map()
     cmd_ = expand_command(cmd, cmds.keys())
@@ -237,7 +237,7 @@ def main():
     if cmd not in cmds:
         print "No such command: `%s'" % cmd
         p.print_help()
-        sys.exit(-1)
+        return -1
 
     s = GlobalState(opts, args)
 
