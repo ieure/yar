@@ -220,8 +220,8 @@ class GlobalState():
             yar.set_device(family, pinout)
 
         if self.opts.family and self.opts.pinout:
-                yar.set_device(int(self.opts.family, 16),
-                               int(self.opts.pinout, 16))
+            yar.set_device(int(self.opts.family, 16),
+                           int(self.opts.pinout, 16))
 
 def main():
     """Yar main entry point"""
