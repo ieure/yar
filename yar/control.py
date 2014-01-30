@@ -295,7 +295,7 @@ class Yar():
         # FIXME this is stupid but I can't think right now.
         self.port.write([int(n, 16) for n in '%04x' % len(bytes)])
 
-        self.port.write([127])  # Rubout
+        self.port.write([0xFF])  # Rubout
 
         # Data
         sent = 0
