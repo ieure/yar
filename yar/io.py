@@ -70,6 +70,8 @@ class Progress():
         if self._start == 0:
             self._start = time.time()
         self._done = processed
+        if self._done == self._bytes:
+            self.complete()
 
     def bytes_sec(self):
         return self._done / (time.time() - self._start)
@@ -82,6 +84,11 @@ class Progress():
         return (msecs_rem / 60, msecs_rem % 60)
 
     def __repr__(self):
+        if self._finish:
+            dur = self._finish - self._start
+            return "%d bytes in %dm%02ds @%db/s" % (
+                self._bytes, dur / 60, dur % 60, self.bytes_sec())
+
         args = (self._done, self._bytes, self.percent_done(),
                 self.bytes_sec()) + self.eta()
         return "[%d/%d] bytes, %02d%% @%db/s, eta %dm%02ds" % args
