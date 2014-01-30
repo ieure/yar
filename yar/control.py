@@ -106,7 +106,19 @@ class Yar():
             return line[:-1] or True
         return False
 
-    def _await(self, max=60):
+    def _resp(self):
+        """Return the response, or raise an exception."""
+        r = self._readok()
+        if r == None:
+            return r
+        if not r:
+            err = self.last_error()
+            if not err:
+                raise IOError("Failed to get error status!")
+            raise ProgrammerError(err)
+        return r
+
+    def _await(self, max=60, fd=None):
         """Await a response for long-running operations.
            Does not read the response.
 
@@ -132,16 +144,6 @@ class Yar():
     def abort(self):
         self.port.write([0x27])
         self.flush()
-
-    def _resp(self):
-        """Return the response, or raise an exception."""
-        r = self._readok()
-        if not r:
-            err = self.last_error()
-            if not err:
-                raise IOError("Failed to get error status!")
-            raise ProgrammerError(err)
-        return r
 
     def config(self):
         """Return device configuration."""
