@@ -325,8 +325,7 @@ class Yar():
         self.port.write([sum >> 8, sum & 0xFF])
 
         self._await()
-        if not self._readok():
-            raise Exception(self.last_error())
+        self._resp()
         s = self.checksum()
         if s != sum:
             raise Exception("Checksum error!")
