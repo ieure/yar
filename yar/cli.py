@@ -98,10 +98,17 @@ def checksum_cmd(_, *args):
     return 0
 
 
-def dumpram_cmd(s, output):
+def checksum_ram_cmd(s):
+    """Checksum programmer RAM"""
+    yar = s.yar()
+    print yar.checksum()
+    return 0
+
+
+def download_cmd(s, output):
     """Dump programmer RAM to file."""
     yar = s.yar()
-    s.yar().flush()
+    yar.flush()
     if not yar.ping():
         print yar.last_error()
         return 1
@@ -111,7 +118,7 @@ def dumpram_cmd(s, output):
 
     return 0
 
-def dumpdev_cmd(s, output):
+def download_device_cmd(s, output):
     """Dump device to file."""
     yar = s.yar()
     s.yar().flush()
@@ -131,7 +138,7 @@ def dumpdev_cmd(s, output):
     return 0
 
 
-def loaddev_cmd(s):
+def read_cmd(s):
     """Load device contents into programmer RAM"""
     yar = s.yar()
     yar.clear_ram()
@@ -143,7 +150,7 @@ def loaddev_cmd(s):
     return 0
 
 
-def loadfile_cmd(s, file_):
+def upload_cmd(s, file_):
     """Load file contents into programmer RAM"""
     yar = s.yar()
     yar.clear_ram()
