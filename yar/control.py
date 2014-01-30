@@ -315,6 +315,9 @@ class Yar():
             bytes = bytes[block:]  # Truncate buffer
             time.sleep(.1)
 
+        out.write("\n")
+        out.flush()
+
         # Trailer
         self.port.write([0x00, 0x00])
 
