@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# © 2014 Ian Eure
+# © 2014, 2015 Ian Eure
 # Author: Ian Eure <ian.eure@gmail.com>
 #
 
@@ -8,8 +8,11 @@
 
 import re
 from . prefixes import prefixes
+import logging
 
-INPUT_RE = re.compile("^" + prefixes.re() + "?" + "([0-9a-z]+)$", re.I)
+_LOG = logging.getLogger("Yar")
+
+INPUT_RE = re.compile("^([a-z]*)(.*)$")
 
 WHITESPACE_RE = re.compile("\s")
 
@@ -34,8 +37,8 @@ class NoMatchingDeviceError(ValueError):
 
 
 def extract(input):
-    """Return the manufacturer, part, and packaging from a device ID."""
-    return INPUT_RE.match(re.sub(r'\s+', '', input))
+    """Return the manufacturer and part/packaging from a device ID."""
+    return tuple(m.strip() for m in INPUT_RE.match(input).groups())
 
 
 def distance(s1, s2):
@@ -62,12 +65,13 @@ def distance(s1, s2):
 
 def matches(devices, device):
     cpts = extract(device.lower())
+    _LOG.debug("Device `%s' broken into %s" % (
+        device, cpts))
     if not cpts:
         raise ValueError("Unknown part format")
-    c = cpts.groups()
-    (mfgr, part) = c
+    (mfgr, part) = cpts
 
-    return (c, [ent for ent in devices if ent[1].lower() == part])
+    return (cpts, [ent for ent in devices if ent[1].lower() == part])
 
 
 def narrow_by_manuf(mpref, candidates):
@@ -79,10 +83,7 @@ def narrow_by_manuf(mpref, candidates):
 
 
 def match(devices, device):
-    """Match a device against a device list.
-
-       The
-    """
+    """Match a device against a device list."""
     ((mfgr, part), candidates) = matches(devices, device)
     # If everything comes back as the same pinout, use that.
     candidate_pinouts = set([ent[4:6] for ent in candidates])
@@ -122,8 +123,7 @@ def similar(devices, device):
     cpts = extract(device.lower())
     if not cpts:
         raise ValueError("Unknown part format")
-    c = cpts.groups()
-    (pref, part) = c
+    (pref, part) = cpts
 
     # Manuf?
     mfgrs = prefixes.get_mfgrs(pref)

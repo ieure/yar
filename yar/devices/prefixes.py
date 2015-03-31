@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# © 2014 Ian Eure
+# © 2014, 2015 Ian Eure
 # Author: Ian Eure <ian.eure@gmail.com>
 #
 
@@ -114,12 +114,6 @@ class Prefixes():
     def get_prefixes(self, mfgr):
         """Return possible prefixes for this manufacturer."""
         return self.prefs.get(mfgr) or set()
-
-    def re(self, prefixes=None):
-        """Return a regex matching prefixes."""
-        prefixes = prefixes or reduce(lambda a, b: set(a).union(set(b)),
-                                      self.prefs.values())
-        return "(%s)" % "|".join(prefixes)
 
     def invert(self, prefixes):
         """Return an inverted index of prefixes."""
