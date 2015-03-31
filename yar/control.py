@@ -7,6 +7,7 @@
 """Data I/O serial interface."""
 
 import array
+import logging
 import serial
 import sys
 import time
@@ -67,6 +68,8 @@ def errorp(err):
 class Yar():
 
     """Class for communicating with Data I/O devices."""
+
+    _log = logging.getLogger("Yar")
 
     def __init__(self, *args, **kwargs):
         kwargs['timeout'] = 0
@@ -140,8 +143,14 @@ class Yar():
 
     def ping(self):
         """Ping the programmer. Returns True if it is responding."""
+        self._log.debug("ping()")
         self._writeline("H")
-        return self._readok()
+        res = self._readok()
+        if res:
+            self._log.debug("ping(): pong")
+        else:
+            self._log.debug("ping(): No response")
+        return res
 
     def abort(self):
         self.port.write([0x27])
