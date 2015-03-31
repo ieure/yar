@@ -330,4 +330,6 @@ class Yar():
         self._resp()
         s = self.checksum()
         if s != sum:
-            raise IOException("Checksum error!")
+            raise IOError(
+                "Checksum error! Input checksum %06x != reported %06x" % (
+                    sum, s))
