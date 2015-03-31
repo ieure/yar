@@ -10,6 +10,7 @@ from itertools import chain
 from optparse import OptionParser, OptionGroup
 from os.path import basename
 import format
+import logging
 import re
 import sys
 
@@ -56,6 +57,8 @@ def get_parser():
 
     cg = OptionGroup(p, "Connection options")
 
+    cg.add_option("--debug", default=False, action="store_true",
+                  help="Debug protocol")
     cg.add_option("--port", "-p", default="/dev/cu.usbserial",
                   help="Serial port programmer is connected to")
     cg.add_option("--baud", "-b", default=9600,
@@ -231,6 +234,10 @@ def main():
         p.print_help()
         return -1
     (cmd, args) = (cmd_args[0], cmd_args[1:])
+
+    if opts.debug:
+        logging.basicConfig(level=logging.DEBUG)
+
     cmds = get_commands_map()
     cmd_ = expand_command(cmd, cmds.keys())
     cmd = cmd_ or cmd
