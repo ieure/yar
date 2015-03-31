@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# © 2014 Ian Eure.
+# © 2014, 2015 Ian Eure.
 # Author: Ian Eure <ian.eure@gmail.com>
 #
 
@@ -15,6 +15,7 @@ import re
 import sys
 
 import serial
+from serial.tools import list_ports
 
 from control import Yar
 import yar.devices.matcher as matcher
@@ -47,6 +48,11 @@ def expand_command(cmd, cmds):
     return None
 
 
+def default_dev():
+    """Return the default device."""
+    p = tuple(list_ports.grep("serial"))
+    return p and p[0][0] or None
+
 def get_parser():
     usage = "Usage: %prog [OPTIONS] COMMAND [ARG ARG ...]\n\nCommands:\n\n"
 
@@ -59,8 +65,13 @@ def get_parser():
 
     cg.add_option("--debug", default=False, action="store_true",
                   help="Debug protocol")
-    cg.add_option("--port", "-p", default="/dev/cu.usbserial",
-                  help="Serial port programmer is connected to")
+
+    sdev = default_dev()
+    if sdev:
+        phelp = "Serial port programmer is connected to. Default: " + sdev
+    else:
+        phelp = "Serial port programmer is connected to."
+    cg.add_option("--port", "-p", default=sdev, help=phelp)
     cg.add_option("--baud", "-b", default=9600,
                   help="Communication speed. Default: 9600.")
     cg.add_option("--parity", default="N81", help="Connection parity/data/stop. Default: N81")
@@ -165,6 +176,16 @@ def lookup_cmd(s, device):
     """Look up a device family/pinout"""
     (family, pinout) = matcher.match(s.pak().DEVICES, device)
     print "%s family %03x pinout %03x" % (device, family, pinout)
+    return 0
+
+
+def ports_cmd(s):
+    """Show available serial ports."""
+    for (dev, desc, _) in list_ports.comports():
+        if desc == "n/a":
+            print dev
+        else:
+            print "%s - %s" % (dev, desc)
     return 0
 
 
